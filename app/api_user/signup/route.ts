@@ -1,9 +1,27 @@
+import { PrismaClient } from "@/app/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { NextRequest, NextResponse } from "next/server";
+
+const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+});
+const client = new PrismaClient({ adapter });
 
 export async function POST(req:NextRequest){
     const body= await req.json()
-    console.log(body)
-    //database hit
-    // 'postgresql://neondb_owner:npg_Khyj1cBO0Tkm@ep-spring-credit-aqn91i2h-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
-   return NextResponse.json("Signed up succesfuly")
+    
+    try {
+        const user = await client.user.create({
+        data: {
+            name: body.name,
+            email: body.email,
+            password: body.password,
+        },  
+    })
+
+   return NextResponse.json(body)
+    } catch (error) {
+        return NextResponse.json({msg:"Error signing up"},{status:411})
+    }
+    
 }
